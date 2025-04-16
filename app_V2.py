@@ -41,7 +41,6 @@ if menu == "Import Fichier":
 
 # Plan de comptes
 elif menu == "Plan de comptes":
-    st.title("Plan de comptes")
     if not st.session_state.data_loaded:
         st.warning("📂 Veuillez importer un fichier d'abord.")
     else:
