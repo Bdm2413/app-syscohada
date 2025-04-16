@@ -62,7 +62,7 @@ elif menu == "Grand Livre":
         # Convertir la colonne Date
         if "Date" in gl_df.columns:
             gl_df["Date"] = pd.to_datetime(gl_df["Date"], format='%d/%m/%Y', errors='coerce')
-            gl_df["Date_formatee"] = gl_df["Date"].dt.strftime('%d/%m/%Y')
+            gl_df["Date "] = gl_df["Date"].dt.strftime('%d/%m/%Y')
             gl_df["Année"] = gl_df["Date"].dt.year
             gl_df["Mois"] = gl_df["Date"].dt.strftime("%Y%m")
 
@@ -163,7 +163,7 @@ elif menu == "Grand Livre":
         gl_df["Débit"] = gl_df["Débit"].apply(lambda x: format_int(x))
         gl_df["Crédit"] = gl_df["Crédit"].apply(lambda x: format_int(x))
 
-        colonnes_affichage = ["Date_formatee", "Journal", "AN", "Compte", "Libellé", "Débit", "Crédit"]
+        colonnes_affichage = ["Date ", "Journal", "AN", "Compte", "Libellé", "Débit", "Crédit"]
         colonnes_presentes = [col for col in colonnes_affichage if col in gl_df.columns]
 
         # Tableau
