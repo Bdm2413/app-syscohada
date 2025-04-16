@@ -3,6 +3,8 @@ import pandas as pd
 import io
 from fpdf import FPDF
 import base64
+from PIL import Image
+import tempfile
 
 st.set_page_config(page_title="App SYSCOHADA", page_icon="🏳️‍🌈", layout="wide")
 
@@ -54,27 +56,22 @@ elif menu == "Grand Livre":
     else:
         st.subheader("📚 Grand Livre - Écritures comptables")
 
-        # Copier le DataFrame
         gl_df = st.session_state.gl_df.copy()
 
-        # Convertir la colonne Date
         if "Date" in gl_df.columns:
             gl_df["Date"] = pd.to_datetime(gl_df["Date"], format='%d/%m/%Y', errors='coerce')
             gl_df["Date "] = gl_df["Date"].dt.strftime('%d/%m/%Y')
             gl_df["Année"] = gl_df["Date"].dt.year
             gl_df["Mois"] = gl_df["Date"].dt.strftime("%Y%m")
 
-        # Convertir la colonne 'Année' en entier pour enlever la partie décimale
         gl_df["Année"] = gl_df["Année"].fillna(0).astype(int)
 
-        # Remplir les valeurs manquantes dans Débit et Crédit
         for col in ["Débit", "Crédit"]:
             if col in gl_df.columns:
                 gl_df[col] = pd.to_numeric(gl_df[col], errors="coerce").fillna(0)
 
-        # Filtres
+        # Filtres dynamiques
         st.sidebar.header("🧮 Filtres")
-
         journal_filter = st.sidebar.multiselect("Journal", options=gl_df["Journal"].dropna().unique())
         an_filter = st.sidebar.multiselect("AN", options=gl_df["AN"].dropna().unique())
         compte_filter = st.sidebar.multiselect("Compte", options=gl_df["Compte"].dropna().unique())
@@ -92,80 +89,113 @@ elif menu == "Grand Livre":
         if mois_filter:
             gl_df = gl_df[gl_df["Mois"].isin(mois_filter)]
 
-        # Calculs
         total_debit = gl_df["Débit"].sum()
         total_credit = gl_df["Crédit"].sum()
         difference = total_debit - total_credit
 
-        # Observation
-        if difference == 0:
-            interpretation = "RAS"
-            bg_color = "#FF595E"
-        elif difference > 0:
-            interpretation = "Solde Débiteur"
-            bg_color = "#FF595E"
-        else:
-            interpretation = "Solde Créditeur"
-            bg_color = "#FF595E"
+        interpretation = "RAS" if difference == 0 else "Solde Débiteur" if difference > 0 else "Solde Créditeur"
 
-        # Styles
-        styles = {
-            "debit": "#1982C4",
-            "credit": "#013026",
-            "diff": "#162A2C",
-            "obs": "#FF595E"
-        }
+        styles = {"debit": "#1982C4", "credit": "#013026", "diff": "#162A2C", "obs": "#FF595E"}
 
-        def format_int(val):
-            return f"{int(val):,}".replace(",", " ")
+        def format_int(val): return f"{int(val):,}".replace(",", " ")
 
-        # Affichage des cartes
         col1, col2, col3, col4 = st.columns(4)
-
         with col1:
-            st.markdown(f"""
-                <div style="background-color:{styles['debit']}; padding:20px; border-radius:10px; text-align:center; height:110px;">
-                    <div style="color:white; font-size:16px;">Total Débit</div>
-                    <div style="color:white; font-size:24px; font-weight:bold; margin-top:10px;">{format_int(total_debit)}</div>
-                </div>
-            """, unsafe_allow_html=True)
-
+            st.markdown(f"""<div style="background-color:{styles['debit']}; padding:20px; border-radius:10px; text-align:center;">
+                <div style="color:white; font-size:16px;">Total Débit</div>
+                <div style="color:white; font-size:24px; font-weight:bold;">{format_int(total_debit)}</div></div>""", unsafe_allow_html=True)
         with col2:
-            st.markdown(f"""
-                <div style="background-color:{styles['credit']}; padding:20px; border-radius:10px; text-align:center; height:110px;">
-                    <div style="color:white; font-size:16px;">Total Crédit</div>
-                    <div style="color:white; font-size:24px; font-weight:bold; margin-top:10px;">{format_int(total_credit)}</div>
-                </div>
-            """, unsafe_allow_html=True)
-
+            st.markdown(f"""<div style="background-color:{styles['credit']}; padding:20px; border-radius:10px; text-align:center;">
+                <div style="color:white; font-size:16px;">Total Crédit</div>
+                <div style="color:white; font-size:24px; font-weight:bold;">{format_int(total_credit)}</div></div>""", unsafe_allow_html=True)
         with col3:
-            st.markdown(f"""
-                <div style="background-color:{styles['diff']}; padding:20px; border-radius:10px; text-align:center; height:110px;">
-                    <div style="color:white; font-size:16px;">Solde</div>
-                    <div style="color:white; font-size:24px; font-weight:bold; margin-top:10px;">{format_int(difference)}</div>
-                </div>
-            """, unsafe_allow_html=True)
-
+            st.markdown(f"""<div style="background-color:{styles['diff']}; padding:20px; border-radius:10px; text-align:center;">
+                <div style="color:white; font-size:16px;">Solde</div>
+                <div style="color:white; font-size:24px; font-weight:bold;">{format_int(difference)}</div></div>""", unsafe_allow_html=True)
         with col4:
-            st.markdown(f"""
-                <div style="background-color:{styles['obs']}; padding:20px; border-radius:10px; text-align:center; height:110px;">
-                    <div style="color:white; font-size:16px;">Observations</div>
-                    <div style="color:white; font-size:20px; font-weight:bold; margin-top:10px;">{interpretation}</div>
-                </div>
-            """, unsafe_allow_html=True)
+            st.markdown(f"""<div style="background-color:{styles['obs']}; padding:20px; border-radius:10px; text-align:center;">
+                <div style="color:white; font-size:16px;">Observation</div>
+                <div style="color:white; font-size:20px; font-weight:bold;">{interpretation}</div></div>""", unsafe_allow_html=True)
 
-        # Espacement
-        st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown("### 📋 Tableau des écritures")
 
-        # Formater les colonnes Débit / Crédit pour affichage
-        gl_df["Débit"] = gl_df["Débit"].apply(lambda x: format_int(x))
-        gl_df["Crédit"] = gl_df["Crédit"].apply(lambda x: format_int(x))
-
+        # Colonnes à afficher
         colonnes_affichage = ["Date ", "Journal", "AN", "Compte", "Libellé", "Débit", "Crédit"]
         colonnes_presentes = [col for col in colonnes_affichage if col in gl_df.columns]
+        gl_df["Débit"] = gl_df["Débit"].round(0)
+        gl_df["Crédit"] = gl_df["Crédit"].round(0)
 
-        # Tableau
         st.dataframe(gl_df[colonnes_presentes], use_container_width=True)
+
+        # Export Excel
+        excel_buffer = io.BytesIO()
+        with pd.ExcelWriter(excel_buffer, engine="xlsxwriter") as writer:
+            gl_df[colonnes_presentes].to_excel(writer, index=False, sheet_name="Grand Livre")
+            writer.save()
+        st.download_button(
+            label="📥 Exporter en Excel",
+            data=excel_buffer.getvalue(),
+            file_name="grand_livre_filtré.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+
+        # Export PDF avec logo
+        uploaded_logo = st.file_uploader("🖼️ Importer un logo pour le PDF", type=["png", "jpg", "jpeg"])
+        if uploaded_logo:
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmp:
+                tmp.write(uploaded_logo.read())
+                logo_path = tmp.name
+
+            class PDF(FPDF):
+                def header(self):
+                    if logo_path:
+                        self.image(logo_path, 10, 8, 30)
+                    self.set_font('Arial', 'B', 12)
+                    self.cell(0, 10, "Grand Livre - Écritures comptables", border=False, ln=1, align='C')
+                    self.ln(5)
+
+                def footer(self):
+                    self.set_y(-15)
+                    self.set_font('Arial', 'I', 8)
+                    self.cell(0, 10, f'Page {self.page_no()}', align='C')
+
+            pdf = PDF(orientation='L', unit='mm', format='A4')
+            pdf.add_page()
+            pdf.set_font("Arial", size=9)
+
+            colonnes = colonnes_presentes
+            largeurs = [25, 20, 15, 25, 100, 25, 25]
+
+            pdf.set_fill_color(220, 220, 220)
+            pdf.set_font(style='B')
+            for col, w in zip(colonnes, largeurs):
+                pdf.cell(w, 8, col, border=1, align='C', fill=True)
+            pdf.ln()
+
+            pdf.set_font("Arial", size=8)
+            for _, row in gl_df[colonnes].iterrows():
+                for col, w in zip(colonnes, largeurs):
+                    val = str(row[col])
+                    align = 'R' if col in ["Débit", "Crédit"] else 'L'
+                    pdf.cell(w, 7, val, border=1, align=align)
+                pdf.ln()
+
+            # Totaux
+            pdf.set_font(style='B')
+            pdf.cell(sum(largeurs[:-2]), 8, "TOTAL", border=1, align='R', fill=True)
+            pdf.cell(largeurs[-2], 8, format_int(total_debit), border=1, align='R', fill=True)
+            pdf.cell(largeurs[-1], 8, format_int(total_credit), border=1, align='R', fill=True)
+
+            pdf_buffer = io.BytesIO()
+            pdf.output(pdf_buffer)
+            pdf_buffer.seek(0)
+
+            st.download_button(
+                label="📄 Télécharger le PDF avec logo",
+                data=pdf_buffer,
+                file_name="grand_livre_tableau.pdf",
+                mime="application/pdf"
+            )
 
 # Balance
 elif menu == "Balance":
