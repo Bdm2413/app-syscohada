@@ -9,7 +9,7 @@ st.set_page_config(page_title="App SYSCOHADA", page_icon="🏳️‍🌈", layou
 # Menu latéral
 st.sidebar.success("Menu de navigation")
 menu = st.sidebar.selectbox("", ["Import Fichier", "Plan de comptes", "Grand Livre", "Balance"])
-st.title("📊 :rainbow[Etats financiers SYSCOHADA]")
+st.title("📊 :rainbow[Générateur de Balance Comptable]")
 
 # Initialisation session
 if "data_loaded" not in st.session_state:
