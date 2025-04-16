@@ -5,6 +5,7 @@ from fpdf import FPDF
 import base64
 from PIL import Image
 import tempfile
+from io import BytesIO
 
 st.set_page_config(page_title="App SYSCOHADA", page_icon="🏳️‍🌈", layout="wide")
 
@@ -163,11 +164,23 @@ elif menu == "Grand Livre":
         gl_df["Débit"] = gl_df["Débit"].apply(lambda x: format_int(x))
         gl_df["Crédit"] = gl_df["Crédit"].apply(lambda x: format_int(x))
 
-        colonnes_affichage = ["Date ", "Journal", "AN", "Compte", "Libellé", "Débit", "Crédit"]
+        colonnes_affichage = ["Date ", "Journal", "AN", "Référence", "Compte", "Libellé", "Débit", "Crédit"]
         colonnes_presentes = [col for col in colonnes_affichage if col in gl_df.columns]
 
         # Tableau
         st.dataframe(gl_df[colonnes_presentes], use_container_width=True)
+
+        # Export Excel
+        excel_buffer = io.BytesIO()
+        with pd.ExcelWriter(excel_buffer, engine="xlsxwriter") as writer:
+            gl_df[colonnes_presentes].to_excel(writer, index=False, sheet_name="Grand Livre")
+
+        st.download_button(
+            label="📥 Exporter en Excel",
+            data=excel_buffer.getvalue(),
+            file_name="grand_livre_filtré.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
 
 # Balance
 elif menu == "Balance":
