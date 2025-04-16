@@ -49,7 +49,6 @@ elif menu == "Plan de comptes":
 
 # Grand Livre
 elif menu == "Grand Livre":
-    st.title("Grand Livre")
     if not st.session_state.data_loaded:
         st.warning("📂 Veuillez importer un fichier d'abord.")
     else:
@@ -170,7 +169,6 @@ elif menu == "Grand Livre":
 
 # Balance
 elif menu == "Balance":
-    st.title("Balance à 8 colonnes")
     if not st.session_state.data_loaded:
         st.warning("📂 Veuillez d'abord importer un fichier Excel via le menu 'Import Fichier'.")
     else:
