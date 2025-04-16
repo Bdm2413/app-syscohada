@@ -167,26 +167,6 @@ elif menu == "Grand Livre":
         # Tableau
         st.dataframe(gl_df[colonnes_presentes], use_container_width=True)
 
-        # Conversion du DataFrame filtré pour l'export
-        df_export = gl_df[colonnes_presentes].copy()
-
-        # Remettre les montants en numérique pour l'export (sans formatage visuel)
-        df_export["Débit"] = df_export["Débit"].str.replace(" ", "").astype(float)
-        df_export["Crédit"] = df_export["Crédit"].str.replace(" ", "").astype(float)
-
-        # Création d'un buffer Excel
-        excel_buffer = io.BytesIO()
-        with pd.ExcelWriter(excel_buffer, engine='xlsxwriter') as writer:
-        df_export.to_excel(writer, index=False, sheet_name="Grand Livre")
-
-        # Bouton de téléchargement
-        st.download_button(
-            label="📥 Télécharger les écritures filtrées (Excel)",
-            data=excel_buffer.getvalue(),
-            file_name="grand_livre_filtré.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
-
 # Balance
 elif menu == "Balance":
     if not st.session_state.data_loaded:
