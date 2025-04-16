@@ -172,6 +172,7 @@ elif menu == "Balance":
     if not st.session_state.data_loaded:
         st.warning("📂 Veuillez d'abord importer un fichier Excel via le menu 'Import Fichier'.")
     else:
+        st.subheader("📅 Balance à 8 colonnes")
         plan_df = st.session_state.plan_df
         gl_df = st.session_state.gl_df
 
