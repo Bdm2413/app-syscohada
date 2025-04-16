@@ -167,18 +167,6 @@ elif menu == "Grand Livre":
         # Tableau
         st.dataframe(gl_df[colonnes_presentes], use_container_width=True)
 
-        # Export Excel : toutes classes
-        output_excel_gl = io.BytesIO()
-        with pd.ExcelWriter(output_excel_gl, engine='xlsxwriter') as writer:
-            balance_with_total.to_excel(writer, index=False, sheet_name='Grand_Livre')
-
-        st.download_button(
-            label="📥 Télécharger Excel (toutes les classes)",
-            data=output_excel_gl.getvalue(),
-            file_name=f"grand_livre.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
-
 # Balance
 elif menu == "Balance":
     if not st.session_state.data_loaded:
