@@ -6,7 +6,6 @@ import tempfile
 from fpdf import FPDF
 from PIL import Image
 from io import BytesIO
-from st_aggrid import AgGrid, GridOptionsBuilder
 
 st.set_page_config(page_title="App SYSCOHADA", page_icon="🏳️‍🌈", layout="wide")
 
