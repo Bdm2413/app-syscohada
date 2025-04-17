@@ -26,48 +26,10 @@ if menu == "Import Fichier":
     st.markdown("""**1.** Le fichier doit être sous l'extension : <span style="background-color:#28a745; color:white; padding:2px 6px; border-radius:4px; font-size:0.8em;">.xlsx</span>""", unsafe_allow_html=True)
     st.markdown("""**2.** Le fichier doit obligatoirement avoir deux feuilles : <span style="background-color:#1982C4; color:white; padding:2px 6px; border-radius:4px; font-size:0.8em;">Plan de comptes</span> et <span style="background-color:#6A4C93; color:white; padding:2px 6px; border-radius:4px; font-size:0.8em;">Grand Livre</span>. Vous devez respecter la casse.""", unsafe_allow_html=True)
     st.markdown("""**3.** La structure de la feuille Plan de comptes doit comme l'exemple ci-dessous :""")
-    data1 = {
-    "Compte": ["10111000", "16211000", "23131000", "28313100", "31111000", "40111000", "41111000", "42211000", "57111000", "60111000", "70111000"],
-    "Intitulé": ["CAPITAL NON APPELE", "EMPRUNTS BANCAIRES", "BATIMENTS ADMINISTRATIFS", "AMORT BATIMENTS ADMINISTRATIFS", "STOCK MARCHANDISES", "FO EXPLOITATION", "CLIENTS", "SALAIRES NETS", "CAISSE PRINCIPALE", "ACHATS MARCHANDISES", "VENTES MARCHANDISES"],
-    "Tableau": ["Bilan", "Bilan","Bilan","Bilan","Bilan","Bilan","Bilan","Bilan","Bilan","Résultat","Résultat"],
-    "BD": ["CA", "DA", "AK", "AK", "BB", "DJ", "BI", "BJ", "BS", " ", " "],
-    "BC": ["CA", "DA", "AK", "AK", "BB", "DJ", "BI", "BJ", "BS", " ", " "],
-    "RD": [" ", " ", " ", " ", " ", " ", " ", " ", " ", "RA", "TA"],
-    "RC": [" ", " ", " ", " ", " ", " ", " ", " ", " ", "RA", "TA"],
-    }
-    df_pc1 = pd.DataFrame(data1)
-
-    gb1 = GridOptionsBuilder.from_dataframe(df_pc1)
-    gb1.configure_default_column(resizable=True, autoHeight=True, wrapText=True, editable=False)  # 🔒 Pas d'édition
-    gb1.configure_grid_options(domLayout='autoHeight')
-    grid_options1 = gb1.build()
-
-    AgGrid(df_pc1, gridOptions=grid_options1, fit_columns_on_grid_load=True, editable=False)
+    st.image("tableau_pc.png", width= 800)
 
     st.markdown("""**4.** La structure de la feuille Grand Livre doit comme l'exemple ci-dessous :""")
-
-    data2 = {
-    "Date": ["01/10/2024", "01/10/2024", "01/10/2024", "01/10/2024", "05/10/2024", "05/10/2024", "05/10/2024", "09/10/2024", "09/10/2024"],
-    "Journal": ["RAN", "RAN", "RAN", "RAN", "VTE", "VTE", "VTE", "CAI", "CAI"],
-    "AN": ["OUI", "OUI", "OUI", "OUI", "NON", "NON", "NON", "NON", "NON"],
-    "Référence": ["AN-2023", "AN-2023", "AN-2023", "AN-2023", "VTE-01-202410", "VTE-01-202410", "VTE-01-202410", "PC-01-202410", "PC-01-202410"],
-    "Libellé": ["A NOUVEAUX 2023", "A NOUVEAUX 2023", "A NOUVEAUX 2023", "A NOUVEAUX 2023", "VENTE DE 200 JOUETS 01-202410", "VENTE DE 200 JOUETS 01-202410", "VENTE DE 200 JOUETS 01-202410", "VENTE DE 200 JOUETS 01-202410", "VENTE DE 200 JOUETS 01-202410"],
-    "Compte": ["52111001", "57111000", "41111000", "40111000", "41111000", "70111000", "44311000", "52111001", "41111000"],
-    "Débit": ["4 200 000", "300 000", "1 000 000", " ", "590 000", " ", " ", "590 000", " "],
-    "Crédit": [" ", " ", " ", "5 500 000", " ", "500 000", "90 000", " ", "590 000"],
-    "Année": ["2024", "2024", "2024", "2024", "2024", "2024", "2024", "2024", "2024"],
-    "Lettrage": [" ", " ", " ", " ", "VTE-01-202410", " ", " ", " ", "VTE-01-202410"],
-    }
-
-    df_pc2 = pd.DataFrame(data2)
-
-    gb2 = GridOptionsBuilder.from_dataframe(df_pc2)
-    gb2.configure_default_column(resizable=True, autoHeight=True, wrapText=True, editable=False)  # 🔒 Pas d'édition
-    gb2.configure_grid_options(domLayout='autoHeight')
-    grid_options2 = gb2.build()
-
-    AgGrid(df_pc2, gridOptions=grid_options2, fit_columns_on_grid_load=True, editable=False)
-    
+    st.image("tableau_gl.png", width= 1200)    
     
     if uploaded_file:
         try:
