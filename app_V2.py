@@ -6,29 +6,75 @@ import tempfile
 from fpdf import FPDF
 from PIL import Image
 from io import BytesIO
+from bilan_actif import structure_bilan_actif
+from bilan_passif import structure_bilan_passif
 
-st.set_page_config(page_title="App SYSCOHADA", page_icon="🏳️‍🌈", layout="wide")
+
+page_bg_img = f""" 
+<style>
+[data-testid="stAppViewContainer"] {{
+background-image: url("https://img.freepik.com/photos-gratuite/surface-abstraite-textures-mur-pierre-beton-blanc_74190-8189.jpg?uid=R132643510&ga=GA1.1.759739923.1732284404&semt=ais_hybrid&w=740");
+background-repeat: no-repeat;
+background-size: cover;
+}}
+
+[data-testid="stHeader"] {{
+background: rgba(0, 0, 0, 0);
+}}
+
+[data-testid="stToolbar"] {{
+right: 2rem;
+}}
+
+[data-testid="stSidebar"] {{
+background-image: url("https://img.freepik.com/photos-gratuite/feuilles-papier-fond-corail_23-2149588185.jpg?uid=R132643510&ga=GA1.1.759739923.1732284404&semt=ais_hybrid&w=740");
+background-repeat: no-repeat;
+background-size: cover;
+}}
+</style>
+
+"""
+
+st.set_page_config(page_title="Etats Fin SYSCOHADA", page_icon="🏳️‍🌈", layout="wide")
+
+st.markdown(page_bg_img, unsafe_allow_html=True)
 
 # Menu latéral
-st.sidebar.success("Menu de navigation")
-menu = st.sidebar.selectbox("", ["Import Fichier", "Plan de comptes", "Grand Livre", "Balance"])
-st.title("📊 :rainbow[Générateur de Balance Comptable]")
+img_logo = Image.open("logo.png")
+st.sidebar.image(img_logo, use_container_width=True)
+st.sidebar.subheader("Etats Financiers SYSCOHADA")
+st.sidebar.write("**Sélectionnez une des options ci-dessous :**")
+menu = st.sidebar.radio("", ["Import Fichier", "Plan de comptes", "Grand Livre", "Balance", "Bilan Actif", "Bilan Passif", "Compte de Résultat","Flux de Trésorerie"])
+
+if menu == "Import Fichier":
+    st.title("📊 :rainbow[Importation du fichier Excel]")
+elif menu == "Plan de comptes":
+    st.title("📚 :rainbow[Plan de comptes]")
+elif menu == "Grand Livre":
+    st.title("📚 :rainbow[Grand Livre]")
+elif menu == "Balance":
+    st.title("📅 :rainbow[Balance]")
+
+elif menu == "Bilan Passif":
+    st.title("🏦 :rainbow[Bilan Passif]")
+elif menu == "Compte de Résultat":
+    st.title("📊 :rainbow[Compte de Résultat]")
+elif menu == "Flux de Trésorerie":
+    st.title("💰 :rainbow[Flux de Trésorerie]")
 
 # Initialisation session
 if "data_loaded" not in st.session_state:
     st.session_state.data_loaded = False
 
 # Import
+modele_xlsx = "https://docs.google.com/spreadsheets/d/1ptu3NZel01nTKZh0_Mdl0HtU3SI-N49B/edit?usp=sharing&ouid=111747695521734603888&rtpof=true&sd=true"
 if menu == "Import Fichier":
     uploaded_file = st.file_uploader("😊 **Importer le fichier Excel contenant le plan comptable et le grand livre**", type=["xlsx"])
-    st.write("Pour le bon fonctionnement de l'application, vous devez importer un Ficher Excel qui respectant les instructions ci-dessous :")
-    st.markdown("""**1.** Le fichier doit être sous l'extension : <span style="background-color:#28a745; color:white; padding:2px 6px; border-radius:4px; font-size:0.8em;">.xlsx</span>""", unsafe_allow_html=True)
-    st.markdown("""**2.** Le fichier doit obligatoirement avoir deux feuilles : <span style="background-color:#1982C4; color:white; padding:2px 6px; border-radius:4px; font-size:0.8em;">Plan de comptes</span> et <span style="background-color:#6A4C93; color:white; padding:2px 6px; border-radius:4px; font-size:0.8em;">Grand Livre</span>. Vous devez respecter la casse.""", unsafe_allow_html=True)
-    st.markdown("""**3.** La structure de la feuille Plan de comptes doit comme l'exemple ci-dessous :""")
-    st.image("tableau_pc.png", width= 800)
-
-    st.markdown("""**4.** La structure de la feuille Grand Livre doit comme l'exemple ci-dessous :""")
-    st.image("tableau_gl.png", width= 1200)    
+    with st.expander("✅ **Instructions relatives au fichier à importer**"):
+        st.write("Pour le bon fonctionnement de l'application, vous devez importer un Ficher Excel qui respectant les instructions ci-dessous :")
+        st.markdown("""**1.** Le fichier doit être sous l'extension : <span style="background-color:#28a745; color:white; padding:2px 6px; border-radius:4px; font-size:0.8em;">.xlsx</span>""", unsafe_allow_html=True)
+        st.markdown("""**2.** Le fichier doit obligatoirement avoir deux feuilles : <span style="background-color:#1982C4; color:white; padding:2px 6px; border-radius:4px; font-size:0.8em;">Plan de comptes</span> et <span style="background-color:#6A4C93; color:white; padding:2px 6px; border-radius:4px; font-size:0.8em;">Grand Livre</span>. Vous devez respecter la casse.""", unsafe_allow_html=True)
+        st.markdown("**3.**  Vous pouvez utiliser le modèle suivant : [Modèle import.xlsx](%s)" % modele_xlsx)
     
     if uploaded_file:
         try:
@@ -56,7 +102,7 @@ elif menu == "Plan de comptes":
     if not st.session_state.data_loaded:
         st.warning("📂 Veuillez d'abord importer un fichier Excel via le menu **Import Fichier**.")
     else:
-        st.subheader("📚 Plan de comptes - Liste des comptes")
+        st.subheader("Liste des comptes importés depuis le fichier Excel.")
         st.dataframe(st.session_state.plan_df, use_container_width=True)
 
 # Grand Livre
@@ -64,7 +110,8 @@ elif menu == "Grand Livre":
     if not st.session_state.data_loaded:
         st.warning("📂 Veuillez d'abord importer un fichier Excel via le menu **Import Fichier**.")
     else:
-        st.subheader("📚 Grand Livre - Écritures comptables")
+        st.subheader("Écritures comptables importéses depuis le fichier Excel")
+        st.write("**Sélectionnez les filtres à gauche pour affiner votre recherche ou analyse.**")
 
         # Copier le DataFrame
         gl_df = st.session_state.gl_df.copy()
@@ -196,7 +243,8 @@ elif menu == "Balance":
     if not st.session_state.data_loaded:
         st.warning("📂 Veuillez d'abord importer un fichier Excel via le menu **Import Fichier**.")
     else:
-        st.subheader("📅 Balance à 8 colonnes")
+        st.subheader("Balance à 8 colonnes générée à partir du Grand Livre")
+        st.write("**Sélectionnez les filtres à gauche pour affiner votre recherche ou analyse. Vous pouvez aussi télécharger la balance au format Excel.**")
         plan_df = st.session_state.plan_df
         gl_df = st.session_state.gl_df
 
@@ -259,13 +307,13 @@ elif menu == "Balance":
         # Nouvelle colonne : Code Bilan
         balance["Code Bilan"] = balance.apply(
             lambda row: row["BD"] if row["Tableau"] == "Bilan" and row["SF Débit"] > 0 else
-                        row["BC"] if row["Tableau"] == "Bilan" and row["SF Crédit"] > 0 else "", axis=1
+                        row["BC"] if row["Tableau"] == "Bilan" and row["SF Crédit"] > 0 else "N/A", axis=1
         )
 
         # Nouvelle colonne : Code Résultat
         balance["Code Résultat"] = balance.apply(
             lambda row: row["RD"] if row["Tableau"] == "Résultat" and row["SF Débit"] > 0 else
-                        row["RC"] if row["Tableau"] == "Résultat" and row["SF Crédit"] > 0 else "", axis=1
+                        row["RC"] if row["Tableau"] == "Résultat" and row["SF Crédit"] > 0 else "N/A", axis=1
         )
 
         balance = balance.reset_index()
@@ -284,6 +332,12 @@ elif menu == "Balance":
         balance_with_total = balance[colonnes].copy()
         balance_with_total.loc[len(balance_with_total)] = total_row
 
+        
+        # Sauvegarde des valeurs numériques brutes de la balance
+        if "balance_numerique_par_annee" not in st.session_state:
+            st.session_state.balance_numerique_par_annee = {}
+        st.session_state.balance_numerique_par_annee[annee_choisie] = balance.copy()
+
         # Format montant
         def format_int(val):
             try:
@@ -293,6 +347,7 @@ elif menu == "Balance":
 
         for col in ["SI Débit", "SI Crédit", "Mouv Débit", "Mouv Crédit", "SF Débit", "SF Crédit"]:
             balance_with_total[col] = balance_with_total[col].apply(lambda x: format_int(x))
+        
 
         # Affichage
         st.dataframe(balance_with_total, use_container_width=True)
@@ -303,7 +358,7 @@ elif menu == "Balance":
             balance_with_total.to_excel(writer, index=False, sheet_name='Balance_Toutes_Classes')
 
         st.download_button(
-            label="📥 Télécharger Excel (toutes les classes)",
+            label="📥 Exporter en Excel (toutes les classes)",
             data=output_excel_all_classes.getvalue(),
             file_name=f"balance_toutes_classes_{annee_choisie}.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
@@ -317,7 +372,7 @@ elif menu == "Balance":
                 classe_df.to_excel(writer, index=False, sheet_name=f'Classe_{classe}')
 
         st.download_button(
-            label="📥 Télécharger Excel (séparé par classes)",
+            label="📥 Exporter en Excel (séparé par classes)",
             data=output_excel_separated_classes.getvalue(),
             file_name=f"balance_separee_classes_{annee_choisie}.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
